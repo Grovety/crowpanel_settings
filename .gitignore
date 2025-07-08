@@ -1,0 +1,9 @@
+build
+sdkconfig
+sdkconfig.old
+.vscode
+.devcontainer
+*.code-workspace
+managed_components
+dependencies.lock
+python/settings.json
