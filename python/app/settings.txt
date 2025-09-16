@@ -1,0 +1,4 @@
+ssid;32;test;str
+psw;32;test2423431;str
+api_key;128;test;str
+1;1;1;str

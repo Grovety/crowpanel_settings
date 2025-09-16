@@ -6,45 +6,35 @@ This project is an application that allows you to enter settings and save them o
 
 It includes two main components:
 
-### 1. Python script
-- Parameters:
-  - SSID
-  - Password
-  - Key
-  - COM port
+### 1. Python app
+- Parameters (get from setting file)
 - Generates a crc32
 - Save parametrs
 - Show messages from board
 
 ### 2. ESP-idf script
-- Divides the data into a structure
+- Saves data in NVS
 
-## How to use Python script
+## How to use Python app
 
-1. [Download Python](https://www.python.org/downloads/) (if not installed)  
-2. Install required Python packages:
+1. Create a settings file with field definitions:
+  Each line represents one field.
+  The format of each line is:
+  ```
+  field_name;field_length;default_value;data_type
+  ```
+  data type can be `int` `str` `bool`
 
-    ```bash
-    python -m pip install pyserial
-    ```
-
-3. Launch `app.py` from the `python` folder
-
-    ```bash
-    python python/app.py
-    ```
-
-4. Fill in the fields: **SSID**, **Password**, **KEY**  
-5. Select the COM port of your device (to refresh the list, use the **⟳** button)  
-6. Press the **Send** button (all settings will be saved in `settings.json`)
-7. If you see something like this in the "Messages from board" field, it means the board received all settings correctly:
+2. Launch `app.exe` from the `python/app` folder
+3. Fill in the fields  
+4. Select the COM port of your device (to refresh the list, use the **⟳** button)  
+5. Press the **Send** button (all settings will be saved in `settings.json`)
+6. If you see something like this in the "Messages from board" field, it means the board received all settings correctly:
 
     ```bash
-    SSID: 1111
-    Password: 1111
-    Key: 1111
+    Param example=example(str)
     ```
-8. To update the firmware on the board, use the **Disconnect** button before updating.
+5. To update the firmware on the board, use the **Disconnect** button before updating.
 
 ### Example usage
 
@@ -55,6 +45,8 @@ Below is an example screenshot showing the application with filled fields and a 
 *Example of filled fields and successful response from the board.*
 
 ## How to use C script
+
+You can use C script in your projects:
 
 1. Download and install [ESP-IDF extension for VS Code](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)
 2. Copy `uart.c` and `uart.h` files into your project folder
@@ -67,49 +59,18 @@ Below is an example screenshot showing the application with filled fields and a 
 4. To save settings via UART, call:
 
       ```c
-      uart_json_init(on_uart_settings_received);
+      uart_json_init();
       ```
 
-    You need to provide the callback function `on_uart_settings_received`, for example:
+5. After that, the settings will be saved into NVS
 
-      ```c
-      wifi_config_data_t wifi_data;
+6. **Make sure the ESP-IDF Monitor is closed** before using the Python script. The COM port must be free.
 
-      void on_uart_settings_received(const wifi_config_data_t *data) {
-          memcpy(&wifi_data, data, sizeof(wifi_config_data_t));
-      }
-      ```
+You can also use the provided firmware to save values in NVS without modifying your projects:
 
-5. After that, the settings will be saved into the `wifi_data` structure:
-   - SSID → `wifi_data.ssid`
-   - Password → `wifi_data.password`
-   - Key → `wifi_data.key`
+1. Open the `firmware` folder and launch **FlashTool.exe**.  
+2. Wait until the flashing process is complete.  
+3. Send the settings using the Python app.  
+4. Now you can flash your own project — all settings will remain stored in NVS.  
 
-9. **Make sure the ESP-IDF Monitor is closed** before using the Python script. The COM port must be free.
-
-### C code example
-
-Below is an example of project code in VS Code :
-
-  ```c
-  #include "uart.h"
-  #include <string.h>
-
-  wifi_config_data_t wifi_data;
-  
-  void on_uart_settings_received(const wifi_config_data_t *data) {
-      memcpy(&wifi_data, data, sizeof(wifi_config_data_t));
-  }
-
-  void app_main() {
-      uart_json_init(on_uart_settings_received);
-  }
-  ```
-
-  CMakeLists.txt example
-
-  ```cmake
-  idf_component_register(SRCS "example.c" "uart.c"
-                        INCLUDE_DIRS ".")
-  ```
-  
+Note: This tool uses the `app-setings` namespace. Make sure to use the same namespace in your project.
